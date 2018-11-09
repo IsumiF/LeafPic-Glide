@@ -185,25 +185,25 @@ public class MediaAdapter extends ThemedAdapter<MediaAdapter.ViewHolder> {
         //GlideBuilder glideBuilder = new GlideBuilder();
         //Runtime rt = Runtime.getRuntime();
         //glideBuilder.setMemoryCache(new LruResourceCache(rt.maxMemory()));
-        RequestOptions options = new RequestOptions()
-                .signature(f.getSignature())
-                .format(DecodeFormat.PREFER_RGB_565)
-                .centerCrop()
-                .placeholder(placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
-
-        Glide.with(holder.imageView.getContext())
-                .load(f.getUri())
-                .apply(options)
-                .thumbnail(0.5f)
-                .into(holder.imageView);
-        /* Bug 2
+//        RequestOptions options = new RequestOptions()
+//                .signature(f.getSignature())
+//                .format(DecodeFormat.PREFER_RGB_565)
+//                .centerCrop()
+//                .placeholder(placeholder)
+//                .diskCacheStrategy(DiskCacheStrategy.RESOURCE);
+//
+//        Glide.with(holder.imageView.getContext())
+//                .load(f.getUri())
+//                .apply(options)
+//                .thumbnail(0.5f)
+//                .into(holder.imageView);
+        //Bug 2
+        //OOM
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.RGB_565;
 
-
         Bitmap bitmap = BitmapFactory.decodeFile(f.getPath(), options);
-        holder.imageView.setImageBitmap(bitmap);*/
+        holder.imageView.setImageBitmap(bitmap);
 
 
         if (f.isVideo()) {

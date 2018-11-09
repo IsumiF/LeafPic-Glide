@@ -9,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -87,6 +88,8 @@ public class RvMediaFragment extends BaseMediaGridFragment {
     private GridSpacingItemDecoration spacingDecoration;
 
     private Album album;
+
+    public static affixMedia affixmedia;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -421,43 +424,6 @@ public class RvMediaFragment extends BaseMediaGridFragment {
             // TODO: 11/21/16 move away from here
             case R.id.affix:
 
-                //region Async MediaAffix
-                class affixMedia extends AsyncTask<Affix.Options, Integer, Void> {
-                    private AlertDialog dialog;
-
-                    @Override
-                    protected void onPreExecute() {
-                        super.onPreExecute();
-                        dialog = AlertDialogsHelper.getProgressDialog((ThemedActivity) getActivity(), getString(R.string.affix), getString(R.string.affix_text));
-                        dialog.show();
-                    }
-
-                    @Override
-                    protected Void doInBackground(Affix.Options... arg0) {
-                        ArrayList<Bitmap> bitmapArray = new ArrayList<Bitmap>();
-                        for (int i = 0; i < adapter.getSelectedCount(); i++) {
-                            if(!adapter.getSelected().get(i).isVideo())
-                                bitmapArray.add(adapter.getSelected().get(i).getBitmap());
-                        }
-
-                        if (bitmapArray.size() > 1)
-                            Affix.AffixBitmapList(getActivity(), bitmapArray, arg0[0]);
-                        else getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getContext(), R.string.affix_error, Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                        return null;
-                    }
-
-                    @Override
-                    protected void onPostExecute(Void result) {
-                        adapter.clearSelected();
-                        dialog.dismiss();
-                    }
-                }
-                //endregion
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), getDialogStyle());
                 final View dialogLayout = getLayoutInflater().inflate(R.layout.dialog_affix, null);
@@ -577,26 +543,37 @@ public class RvMediaFragment extends BaseMediaGridFragment {
                 builder.setView(dialogLayout);
                 builder.setPositiveButton(this.getString(R.string.ok_action).toUpperCase(), new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Bitmap.CompressFormat compressFormat;
-                        switch (radioFormatGroup.getCheckedRadioButtonId()) {
-                            case R.id.radio_jpeg:
-                            default:
-                                compressFormat = Bitmap.CompressFormat.JPEG;
-                                break;
-                            case R.id.radio_png:
-                                compressFormat = Bitmap.CompressFormat.PNG;
-                                break;
-                            case R.id.radio_webp:
-                                compressFormat = Bitmap.CompressFormat.WEBP;
-                                break;
-                        }
+                        new Thread(){
+                            public void run(){
+                                Bitmap.CompressFormat compressFormat;
+                                switch (radioFormatGroup.getCheckedRadioButtonId()) {
+                                    case R.id.radio_jpeg:
+                                    default:
+                                        compressFormat = Bitmap.CompressFormat.JPEG;
+                                        break;
+                                    case R.id.radio_png:
+                                        compressFormat = Bitmap.CompressFormat.PNG;
+                                        break;
+                                    case R.id.radio_webp:
+                                        compressFormat = Bitmap.CompressFormat.WEBP;
+                                        break;
+                                }
 
-                        Affix.Options options = new Affix.Options(
-                                swSaveHere.isChecked() ? adapter.getFirstSelected().getPath() : Affix.getDefaultDirectoryPath(),
-                                compressFormat,
-                                seekQuality.getProgress(),
-                                swVertical.isChecked());
-                        new affixMedia().execute(options);
+                                Affix.Options options = new Affix.Options(
+                                        swSaveHere.isChecked() ? adapter.getFirstSelected().getPath() : Affix.getDefaultDirectoryPath(),
+                                        compressFormat,
+                                        seekQuality.getProgress(),
+                                        swVertical.isChecked());
+                                affixmedia = new affixMedia();
+                                /*
+                                    线程安全Bug1
+                                    如果想要偶现，则把sleep去掉
+                                 */
+                                SystemClock.sleep(5000);
+                                Log.i("newmonkey","affixmedia.execute"+ affixmedia.toString());
+                                affixmedia.execute(options);
+                            }
+                        }.start();
                     }
                 });
                 builder.setNegativeButton(this.getString(R.string.cancel).toUpperCase(), null);
@@ -665,4 +642,42 @@ public class RvMediaFragment extends BaseMediaGridFragment {
         refresh.setColorSchemeColors(t.getAccentColor());
         refresh.setProgressBackgroundColorSchemeColor(t.getBackgroundColor());
     }
+
+    //region Async MediaAffix
+    public class affixMedia extends AsyncTask<Affix.Options, Integer, Void> {
+        private AlertDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+//                        dialog = AlertDialogsHelper.getProgressDialog((ThemedActivity) getActivity(), getString(R.string.affix), getString(R.string.affix_text));
+//                        dialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Affix.Options... arg0) {
+            ArrayList<Bitmap> bitmapArray = new ArrayList<Bitmap>();
+            for (int i = 0; i < adapter.getSelectedCount(); i++) {
+                if(!adapter.getSelected().get(i).isVideo())
+                    bitmapArray.add(adapter.getSelected().get(i).getBitmap());
+            }
+
+            if (bitmapArray.size() > 1)
+                Affix.AffixBitmapList(getActivity(), bitmapArray, arg0[0]);
+            else getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getContext(), R.string.affix_error, Toast.LENGTH_SHORT).show();
+                }
+            });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            adapter.clearSelected();
+//                        dialog.dismiss();
+        }
+    }
+    //endregion
 }

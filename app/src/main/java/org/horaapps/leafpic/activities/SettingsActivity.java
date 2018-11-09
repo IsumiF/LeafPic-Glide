@@ -1,13 +1,17 @@
 package org.horaapps.leafpic.activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -111,6 +115,12 @@ public class SettingsActivity extends ThemedActivity {
         }
         ScrollView scrollView = findViewById(R.id.settingAct_scrollView);
         setScrollViewColor(scrollView);
+
+        /* Bug 6*/
+        //PowerManager pm = (PowerManager) getBaseContext().getSystemService(Context.POWER_SERVICE);
+        //PowerManager.WakeLock wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "costpowertest");
+        //wakeLock.acquire();
+
         /*
          Bug 4: Handler内存泄漏
          */
