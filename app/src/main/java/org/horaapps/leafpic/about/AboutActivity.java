@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -59,14 +60,22 @@ import static org.horaapps.leafpic.util.ServerConstants.TWITTER_ABOUT_GILBERT;
  */
 public class AboutActivity extends ThemedActivity implements ContactListener {
 
-    @BindView(R.id.toolbar) Toolbar toolbar;
-    @BindView(R.id.about_version_item_sub) ThemedTextView appVersion;
-    @BindView(R.id.aboutAct_scrollView) ScrollView aboutScrollView;
-    @BindView(R.id.about_developer_donald) AboutCreator aboutDonald;
-    @BindView(R.id.about_developer_gilbert) AboutCreator aboutGilbert;
-    @BindView(R.id.about_patryk_goworowski_item_sub) ThemedTextView specialThanksPatryk;
-    @BindView(R.id.about_link_changelog) AboutLink linkChangelog;
-    @BindView(R.id.list_contributors) RecyclerView rvContributors;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.about_version_item_sub)
+    ThemedTextView appVersion;
+    @BindView(R.id.aboutAct_scrollView)
+    ScrollView aboutScrollView;
+    @BindView(R.id.about_developer_donald)
+    AboutCreator aboutDonald;
+    @BindView(R.id.about_developer_gilbert)
+    AboutCreator aboutGilbert;
+    @BindView(R.id.about_patryk_goworowski_item_sub)
+    ThemedTextView specialThanksPatryk;
+    @BindView(R.id.about_link_changelog)
+    AboutLink linkChangelog;
+    @BindView(R.id.list_contributors)
+    RecyclerView rvContributors;
 
     private ChromeCustomTabs chromeTabs;
     private int emojiEasterEggCount = 0;
@@ -83,15 +92,27 @@ public class AboutActivity extends ThemedActivity implements ContactListener {
         chromeTabs = new ChromeCustomTabs(AboutActivity.this);
 
         initUi();
+        handler.postDelayed(greetingRunnable, 5000);
     }
+
+    private Handler handler = new Handler();
+    private Runnable greetingRunnable = new Runnable() {
+        @Override
+        public void run() {
+            handler.postDelayed(this, 500);
+        }
+    };
 
     @Override
     public void onDestroy() {
         chromeTabs.destroy();
         super.onDestroy();
+        handler = null;
     }
 
-    /** Select List */
+    /**
+     * Select List
+     */
     @OnClick(R.id.about_link_report_bug)
     public void onReportBug() {
         chromeTabs.launchUrl(LEAFPIC_ISSUES);
