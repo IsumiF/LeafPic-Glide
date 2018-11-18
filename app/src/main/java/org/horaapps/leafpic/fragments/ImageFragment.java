@@ -15,6 +15,11 @@ import org.horaapps.leafpic.R;
 import org.horaapps.leafpic.data.Media;
 import org.horaapps.leafpic.util.BitmapUtils;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -39,6 +44,7 @@ public class ImageFragment extends BaseMediaFragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         super.onViewCreated(view, savedInstanceState);
         Uri mediaUri = media.getUri();
         imageView.setOrientation(BitmapUtils.getOrientation(mediaUri, getContext()));
@@ -48,6 +54,9 @@ public class ImageFragment extends BaseMediaFragment {
 
     @Override
     public void onDestroyView() {
+        Integer DestroySpeed = (int)((imageView.getSWidth())/imageView.getSHeight()
+                + (imageView.getSHeight())/imageView.getSWidth()) + 1;
+        for(int curLen = 0;curLen<imageView.getSWidth()*imageView.getSHeight();)curLen += DestroySpeed;
         imageView.recycle();
         super.onDestroyView();
     }
