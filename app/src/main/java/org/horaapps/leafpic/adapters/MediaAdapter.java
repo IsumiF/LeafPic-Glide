@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,6 +26,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.mikepenz.community_material_typeface_library.CommunityMaterial;
 import com.mikepenz.google_material_typeface_library.GoogleMaterial;
 
+import org.horaapps.leafpic.App;
 import org.horaapps.leafpic.R;
 import org.horaapps.leafpic.data.Album;
 import org.horaapps.leafpic.data.Media;
@@ -151,6 +154,14 @@ public class MediaAdapter extends ThemedAdapter<MediaAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.card_photo, parent, false));
+    }
+
+    private class handlerThread extends Thread{
+        @Override
+        public void run() {
+            super.run();
+            App a = App.getInstance();
+        }
     }
 
     private void notifySelected(boolean increase) {
@@ -344,6 +355,7 @@ public class MediaAdapter extends ThemedAdapter<MediaAdapter.ViewHolder> {
         media.clear();
         media.addAll(mediaList);
         notifyDataSetChanged();
+
     }
 
     public int add(Media album) {
@@ -352,11 +364,16 @@ public class MediaAdapter extends ThemedAdapter<MediaAdapter.ViewHolder> {
         if (i < 0) i = ~i;
         media.add(i, album);
 
+        handlerThread mThread = new handlerThread();
+        mThread.start();
+
         //notifyItemRangeInserted(0, media.size()-1);
         notifyItemInserted(i);
         //notifyDataSetChanged();
         return i;
     }
+
+    private static ArrayList<ImageView> views = new ArrayList<>();
 
     @Override
     public int getItemCount() {

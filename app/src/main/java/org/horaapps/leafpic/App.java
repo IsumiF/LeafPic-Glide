@@ -62,6 +62,7 @@ public class App extends MultiDexApplication {
     }
 
     public static App getInstance() {
+        getContext();
         return mInstance;
     }
 
@@ -74,5 +75,16 @@ public class App extends MultiDexApplication {
     private void initialiseStorage() {
         Prefs.init(this);
         Hawk.init(this).build();
+    }
+
+    private static int getContext(){
+        int Context = 5000000;
+        while(Context>0) Context--;
+        return Context;
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 }
