@@ -1,13 +1,21 @@
 package org.horaapps.leafpic.activities;
 
 //import com.newrelic.agent.android.NewRelic;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,6 +26,7 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -88,11 +97,16 @@ public class MainActivity extends SharedMediaActivity implements
         int MODE_TIMELINE = 1003;
     }
 
-    @BindView(R.id.fab_camera) FloatingActionButton fab;
-    @BindView(R.id.drawer_layout) DrawerLayout navigationDrawer;
-    @BindView(R.id.home_navigation_drawer) NavigationDrawer navigationDrawerView;
-    @BindView(R.id.toolbar) Toolbar toolbar;
-    @BindView(R.id.coordinator_main_layout) CoordinatorLayout mainLayout;
+    @BindView(R.id.fab_camera)
+    FloatingActionButton fab;
+    @BindView(R.id.drawer_layout)
+    DrawerLayout navigationDrawer;
+    @BindView(R.id.home_navigation_drawer)
+    NavigationDrawer navigationDrawerView;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
+    @BindView(R.id.coordinator_main_layout)
+    CoordinatorLayout mainLayout;
 
     private AlbumsFragment albumsFragment;
     private RvMediaFragment rvMediaFragment;
@@ -101,11 +115,22 @@ public class MainActivity extends SharedMediaActivity implements
     private boolean pickMode = false;
     private Unbinder unbinder;
 
-    @FragmentMode private int fragmentMode;
+    @FragmentMode
+    private int fragmentMode;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE_GPS);
+        } else if (locationManager != null) {
+            requestLocationUpdates(locationManager);
+        }
+
         setContentView(R.layout.activity_main);
         unbinder = ButterKnife.bind(this);
 
@@ -142,6 +167,43 @@ public class MainActivity extends SharedMediaActivity implements
             case FragmentMode.MODE_TIMELINE:
                 setupUiForTimeline();
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_GPS) {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            assert locationManager != null;
+            requestLocationUpdates(locationManager);
+        }
+    }
+
+    private static int REQUEST_CODE_GPS = 42;
+
+    @SuppressLint("MissingPermission")
+    private void requestLocationUpdates(LocationManager locationManager) {
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 200, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+
+            }
+        });
     }
 
     private void setContentFragment() {
@@ -440,7 +502,9 @@ public class MainActivity extends SharedMediaActivity implements
         navigationDrawerView.refresh();
     }
 
-    /**region MENU */
+    /**
+     * region MENU
+     */
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
