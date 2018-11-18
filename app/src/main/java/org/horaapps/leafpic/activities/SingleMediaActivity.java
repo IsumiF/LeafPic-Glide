@@ -10,10 +10,8 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Parcelable;
+import android.os.*;
+import android.os.Process;
 import android.provider.Settings;
 import android.support.annotation.CallSuper;
 import android.support.annotation.NonNull;
@@ -100,9 +98,12 @@ public class SingleMediaActivity extends SharedMediaActivity implements BaseMedi
     public static final String EXTRA_ARGS_MEDIA = "args_media";
     public static final String EXTRA_ARGS_POSITION = "args_position";
 
-    @BindView(R.id.photos_pager) HackyViewPager mViewPager;
-    @BindView(R.id.PhotoPager_Layout) RelativeLayout activityBackground;
-    @BindView(R.id.toolbar) Toolbar toolbar;
+    @BindView(R.id.photos_pager)
+    HackyViewPager mViewPager;
+    @BindView(R.id.PhotoPager_Layout)
+    RelativeLayout activityBackground;
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
 
     private boolean fullScreenMode, customUri = false;
     private int position;
@@ -163,7 +164,15 @@ public class SingleMediaActivity extends SharedMediaActivity implements BaseMedi
 
         adapter = new MediaPagerAdapter(getSupportFragmentManager(), media);
         initUi();
+
+        mThread = new HandlerThread("handler1", Process.THREAD_PRIORITY_BACKGROUND);
+        mThread.start();
+        mHandler = new Handler(mThread.getLooper());
     }
+
+    private HandlerThread mThread;
+
+    private Handler mHandler = new Handler();
 
     private void loadAlbum(Intent intent) {
         album = intent.getParcelableExtra(EXTRA_ARGS_ALBUM);
@@ -297,7 +306,10 @@ public class SingleMediaActivity extends SharedMediaActivity implements BaseMedi
     }
 
     // TODO: Figure out how we should classify Images and GIFs
-    /** This should work temporarily **/
+
+    /**
+     * This should work temporarily
+     **/
     private boolean isCurrentMediaImage() {
         return getCurrentMedia().isImage() && !getCurrentMedia().isGif();
     }
@@ -677,7 +689,7 @@ public class SingleMediaActivity extends SharedMediaActivity implements BaseMedi
                 photoPrinter.setScaleMode(PrintHelper.SCALE_MODE_FIT);
                 try (InputStream in = getContentResolver().openInputStream(getCurrentMedia().getUri())) {
                     Bitmap bitmap = BitmapFactory.decodeStream(in);
-                    photoPrinter.printBitmap(String.format("print_%s", getCurrentMedia().getDisplayPath() ), bitmap);
+                    photoPrinter.printBitmap(String.format("print_%s", getCurrentMedia().getDisplayPath()), bitmap);
                 } catch (Exception e) {
                     Log.e("print", String.format("unable to print %s", getCurrentMedia().getUri()), e);
                     Toast.makeText(getApplicationContext(), R.string.print_error, Toast.LENGTH_SHORT).show();
